@@ -4,7 +4,7 @@ import { OAuthCallbackError } from "@atproto/oauth-client-node";
 import type { NextFunction, Request, Response } from "express";
 import { Router } from "express";
 import logger from "../utils/logger";
-import { createURLParams, prepareAuthRedirectData } from "utils/authUtils";
+import { createURLParams, prepareAuthRedirectData } from "../utils/authUtils";
 
 const APP_BASE_DEEPLINK = process.env.APP_BASE_DEEPLINK;
 
