@@ -57,8 +57,8 @@ class Server {
 
       await this.setuproutes(client);
 
-      this.app.listen(this.port, () => {
-        logger.info(`Server listening on http://localhost:${this.port}`);
+      this.app.listen(this.port, "127.0.0.1", () => {
+        logger.info(`Server listening on http://127.0.0.1:${this.port}`);
       });
     } catch (error) {
       logger.error("Failed to start server", error);

@@ -16,6 +16,7 @@ export async function initaliseOAuthClient(): Promise<NodeOAuthClient> {
   if (clientInstance) {
     return clientInstance;
   }
+  const clientUri = process.env.CLIENT_URI;
   const clientId = process.env.CLIENT_ID;
   const jwksUri = process.env.JWKS_URI;
   const redirectUri = process.env.REDIRECT_URI;
@@ -26,22 +27,23 @@ export async function initaliseOAuthClient(): Promise<NodeOAuthClient> {
     process.exit(1);
   }
 
-  const keyset = await Promise.all([JoseKey.fromImportable(privateKey1)]);
+  const key1 = await JoseKey.fromImportable(privateKey1, "key1");
   const options: NodeOAuthClientOptions = {
     clientMetadata: {
       client_id: clientId,
       client_name: "Book Kin (dev)",
-      client_uri: "https://bookkin.peafield.dev",
+      client_uri: clientUri,
       redirect_uris: [redirectUri],
       grant_types: ["authorization_code", "refresh_token"],
       response_types: ["code"],
       application_type: "web",
       token_endpoint_auth_method: "private_key_jwt",
+      token_endpoint_auth_signing_alg: "ES256",
       dpop_bound_access_tokens: true,
       jwks_uri: jwksUri,
       scope: "atproto",
     },
-    keyset: keyset,
+    keyset: [key1],
     stateStore: mongoStateStore,
     sessionStore: mongoSessionStore,
   };
