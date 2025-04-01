@@ -4,7 +4,7 @@ import mongoose, { Schema, type Document } from "mongoose";
 // This interface primarily informs Mongoose. NodeSavedState is the target type.
 interface IOAuthStateDocument extends Document {
   key: string;
-  pkce: string;
+  verifier: string;
   dpopJwk: Jwk;
   state?: string;
   clientId: string;
@@ -19,7 +19,7 @@ interface IOAuthStateDocument extends Document {
 
 const OAuthStateSchema: Schema = new Schema<IOAuthStateDocument>({
   key: { type: String, required: true, unique: true, index: true },
-  pkce: { type: String, required: true },
+  verifier: { type: String, required: true },
   dpopJwk: { type: Schema.Types.Mixed, required: true },
   state: { type: String, required: false },
   clientId: { type: String, required: true },

@@ -17,15 +17,16 @@ export async function initaliseOAuthClient(): Promise<NodeOAuthClient> {
     return clientInstance;
   }
   const clientUri = process.env.CLIENT_URI;
-  const clientId = process.env.CLIENT_ID;
-  const jwksUri = process.env.JWKS_URI;
-  const redirectUri = process.env.REDIRECT_URI;
   const privateKey1 = process.env.PRIVATE_KEY_1;
 
-  if (!clientId || !jwksUri || !redirectUri || !privateKey1) {
+  if (!clientUri || !privateKey1) {
     logger.error("OAuth environment variables missing!");
     process.exit(1);
   }
+
+  const clientId = `${clientUri}/client-metadata.json`;
+  const redirectUri = `${clientUri}/callback`;
+  const jwksUri = `${clientUri}/jwks.json`;
 
   const key1 = await JoseKey.fromImportable(privateKey1, "key1");
   const options: NodeOAuthClientOptions = {
@@ -41,7 +42,7 @@ export async function initaliseOAuthClient(): Promise<NodeOAuthClient> {
       token_endpoint_auth_signing_alg: "ES256",
       dpop_bound_access_tokens: true,
       jwks_uri: jwksUri,
-      scope: "atproto",
+      scope: "atproto transition:generic",
     },
     keyset: [key1],
     stateStore: mongoStateStore,

@@ -4,6 +4,9 @@ import { OAuthCallbackError } from "@atproto/oauth-client-node";
 import type { NextFunction, Request, Response } from "express";
 import { Router } from "express";
 import logger from "../utils/logger";
+import { createURLParams, prepareAuthRedirectData } from "utils/authUtils";
+
+const APP_BASE_DEEPLINK = process.env.APP_BASE_DEEPLINK;
 
 export function createOAuthRouter(client: NodeOAuthClient): Router {
   const router = Router();
@@ -62,20 +65,40 @@ export function createOAuthRouter(client: NodeOAuthClient): Router {
           )}, Iss: ${params.get("iss")}`
         );
 
-        const { session, state: returnedState } = await client.callback(params);
+        const { session } = await client.callback(params);
 
-        logger.info(`Callback successful! Returned state: ${returnedState}`);
-        logger.info("User authenticated DID:", session.did);
+        logger.info("Callback successful!");
 
         const agent = new Agent(session);
-        const profile = await agent.getProfile({ actor: session.did });
-        logger.info(`Workspaceed profile for ${profile.data.handle}`);
+        const profileResult = await agent.getProfile({ actor: session.did });
 
-        res.json({
-          message: "Authentication successful!",
-          did: session.did,
-          handle: profile.data.handle,
-        });
+        if (!profileResult.success || !profileResult.data) {
+          logger.error(
+            `Failed to fetch profile data after callback: ${profileResult}`
+          );
+        }
+
+        const profile = profileResult.data;
+        logger.info(`Workspace profile for ${profile.handle}`);
+
+        const redirectData = prepareAuthRedirectData(session, profile);
+        if (!redirectData) {
+          logger.error("Failed to prepare auth redirect data");
+          return res
+            .status(500)
+            .redirect(`${APP_BASE_DEEPLINK}?error=data_preparation_failed`);
+        }
+
+        const redirectUrl = createURLParams(redirectData);
+        if (!redirectUrl) {
+          logger.error("Failed to create redirect URL");
+          return res
+            .status(500)
+            .redirect(`${APP_BASE_DEEPLINK}?error=url_preparation_failed`);
+        }
+
+        logger.info(`Redirecting to: ${redirectUrl}`);
+        res.redirect(redirectUrl);
       } catch (error) {
         logger.error("OAuth Callback Error:", error);
         if (error instanceof OAuthCallbackError) {
