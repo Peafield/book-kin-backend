@@ -1,5 +1,7 @@
 # Book Kin Backend
 
+#TODO CLEAN UP!!
+
 ## Prepartion
  - Create JWT secret:
 ```bash
