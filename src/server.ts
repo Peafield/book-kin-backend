@@ -35,7 +35,7 @@ class Server {
     logger.info("Base middleware configured");
   }
 
-  private async setuproutes(client: NodeOAuthClient): Promise<void> {
+  private async setupRoutes(client: NodeOAuthClient): Promise<void> {
     const oauthrouter = createOAuthRouter(client);
     // const apiRouter = createrApiRouter(client);
 
@@ -55,10 +55,10 @@ class Server {
       const client = await initaliseOAuthClient();
       this.client = client;
 
-      await this.setuproutes(client);
+      await this.setupRoutes(client);
 
-      this.app.listen(this.port, "127.0.0.1", () => {
-        logger.info(`Server listening on http://127.0.0.1:${this.port}`);
+      this.app.listen(this.port, "0.0.0.0", () => {
+        logger.info(`Server listening on http://"0.0.0.0":${this.port}`);
       });
     } catch (error) {
       logger.error("Failed to start server", error);
