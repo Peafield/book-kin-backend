@@ -9,7 +9,8 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 - Create private_key_1:
   ``` bash
-  openssl genpkey -algorithm EC -pkeyopt ec_paramgen_curve:prime256v1 -out private_key.pem
+  openssl ecparam -name prime256v1 -genkey -noout -out ec_sec1_key.pem
+  openssl pkcs8 -topk8 -inform PEM -in ec_sec1_key.pem -outform PEM -nocrypt -out private_key.pem
   cat private_key.pem
   ```
 
