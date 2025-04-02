@@ -1,23 +1,22 @@
 import type { NodeOAuthClient } from "@atproto/oauth-client-node";
 import cors from "cors";
-import connectDB from "./db";
 import dotenv from "dotenv";
 import express, { type Express } from "express";
-import { initaliseOAuthClient } from "./oauth/oauthClient";
+import connectDB from "./db";
 import errorHandler from "./middleware/errorHandler";
+import { initaliseOAuthClient } from "./oauth/oauthClient";
 import { createOAuthRouter } from "./routes/oauthRoutes";
+import { env } from "./utils/env";
 import logger from "./utils/logger";
 
 dotenv.config();
 
 class Server {
   private app: Express;
-  private port: number;
   private client!: NodeOAuthClient;
 
   constructor() {
     this.app = express();
-    this.port = Number.parseInt(process.env.PORT || "8080", 10);
     this.config();
   }
 
@@ -57,8 +56,8 @@ class Server {
 
       await this.setupRoutes(client);
 
-      this.app.listen(this.port, "0.0.0.0", () => {
-        logger.info(`Server listening on http://"0.0.0.0":${this.port}`);
+      this.app.listen(env.PORT, "0.0.0.0", () => {
+        logger.info(`Server listening on http://"0.0.0.0":${env.PORT}`);
       });
     } catch (error) {
       logger.error("Failed to start server", error);

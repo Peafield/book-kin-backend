@@ -5,8 +5,9 @@ import type { NextFunction, Request, Response } from "express";
 import { Router } from "express";
 import logger from "../utils/logger";
 import { createURLParams, prepareAuthRedirectData } from "../utils/authUtils";
+import { env } from "../utils/env";
 
-const APP_BASE_DEEPLINK = process.env.APP_BASE_DEEPLINK;
+const APP_BASE_DEEPLINK = env.APP_BASE_DEEPLINK;
 
 export function createOAuthRouter(client: NodeOAuthClient): Router {
   const router = Router();

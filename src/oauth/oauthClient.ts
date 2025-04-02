@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import logger from "../utils/logger";
 import { mongoStateStore } from "../stores/MongoStateStore";
 import { mongoSessionStore } from "../stores/MongoSessionStore";
+import { env } from "../utils/env";
 
 dotenv.config();
 
@@ -16,13 +17,8 @@ export async function initaliseOAuthClient(): Promise<NodeOAuthClient> {
   if (clientInstance) {
     return clientInstance;
   }
-  const clientUri = process.env.CLIENT_URI;
-  const privateKey1 = process.env.PRIVATE_KEY_1;
-
-  if (!clientUri || !privateKey1) {
-    logger.error("OAuth environment variables missing!");
-    process.exit(1);
-  }
+  const clientUri = env.CLIENT_URI;
+  const privateKey1 = env.PRIVATE_KEY_1;
 
   const clientId = `${clientUri}/client-metadata.json`;
   const redirectUri = `${clientUri}/callback`;

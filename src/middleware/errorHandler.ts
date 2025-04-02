@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import logger from "../utils/logger";
+import { env } from "../utils/env";
 
 export interface ErrorResponse extends Error {
   statusCode?: number;
@@ -23,7 +24,7 @@ const errorHandler = (
 ) => {
   const statusCode = err.statusCode || 500;
   const message =
-    process.env.NODE_ENV === "production" && err.statusCode === 500
+    env.NODE_ENV === "production" && err.statusCode === 500
       ? "Internal server error"
       : err.message || "Internal server error";
 
@@ -51,7 +52,7 @@ const errorHandler = (
     errorResponse.validationErrors = err.validation;
   }
 
-  if (process.env.NODE_ENV === "development") {
+  if (env.NODE_ENV === "development") {
     errorResponse.stack = err.stack;
   }
 

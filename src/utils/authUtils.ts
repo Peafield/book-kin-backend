@@ -3,19 +3,15 @@ import type { OAuthSession, Session } from "@atproto/oauth-client-node";
 import type { AppUserProfile, AuthRedirectData } from "types";
 import logger from "./logger";
 import jwt from "jsonwebtoken";
+import { env } from "./env";
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const APP_BASE_DEEPLINK = process.env.APP_BASE_DEEPLINK;
+const JWT_SECRET = env.JWT_SECRET;
+const APP_BASE_DEEPLINK = env.APP_BASE_DEEPLINK;
 
 export function prepareAuthRedirectData(
   session: OAuthSession,
   profile: ProfileViewDetailed
 ): AuthRedirectData | null {
-  if (!JWT_SECRET) {
-    logger.error("JWT_SECRET environment variable is not set!");
-    throw new Error("Server configuration error: JWT_SECRET is not set");
-  }
-
   if (!session?.did || !profile?.handle) {
     logger.error("Session or pofile data missing required fields (did/handle)");
     throw new Error(
@@ -41,11 +37,6 @@ export function prepareAuthRedirectData(
 export function createURLParams(
   redirectData: AuthRedirectData | null
 ): string | null {
-  if (!APP_BASE_DEEPLINK) {
-    logger.error("APP_BASE_DEEPLINK environment variable is not set!");
-    throw new Error("Server configuration error: APP_BASE_DEEPLINK is not set");
-  }
-
   if (!redirectData) {
     logger.error("Missing redirect data from callback");
     throw new Error("Missing redirect data from callback");
