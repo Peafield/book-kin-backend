@@ -7,7 +7,7 @@
 	"scripts": {
 		"build": "tsc",
 		"start": "node dist/server.js",
-		"dev": "nodemon",
+		"dev": "dotenv -e .env.web -- nodemon",
 		"dev:web": "dotenv -e .env.web -- nodemon",
 		"dev:native": "dotenv -e .env.native -- nodemon"
 	},

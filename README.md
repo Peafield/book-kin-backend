@@ -24,9 +24,7 @@ This guide covers the steps to run the backend server, the frontend app on an em
     * Navigate to the `book-kin-backend` directory.
     * Ensure your `.env` file exists and contains **correct values** for:
         * `MONGO_URI=mongodb://admin:password@127.0.0.1:27020/atproto-oauth?authSource=admin` (Using specific IP `127.0.0.1` and correct port/creds).
-        * `CLIENT_ID=https://<YOUR_NGROK_URL>/client-metadata.json`
-        * `JWKS_URI=https://<YOUR_NGROK_URL>/jwks.json`
-        * `REDIRECT_URI=https://<YOUR_NGROK_URL>/callback`
+        * `CLIENT_URI=https://<YOUR_NGROK_URL>/client-metadata.json`
         * `APP_BASE_DEEPLINK=bookkin://callback` (For mobile testing via deep link).
         * `PRIVATE_KEY_1="..."` (Your actual PKCS#8 key, formatted with `\n`).
         * `JWT_SECRET=YOUR_SECURE_SECRET_FOR_APP_TOKENS` (Add this for JWT generation).
@@ -48,8 +46,8 @@ This guide covers the steps to run the backend server, the frontend app on an em
     ngrok http 8080
     ```
 * **Copy the `https://...ngrok-free.app` URL.**
-* **Update Backend `.env`:** Paste the copied ngrok URL into the `CLIENT_ID`, `JWKS_URI`, and `REDIRECT_URI` variables in your backend `.env` file.
-* **Restart Backend Server:** Stop (`Ctrl+C`) and restart the backend server (`npm run dev`) so it uses the updated ngrok URLs.
+* **Update Backend `.env`:** Paste the copied ngrok URL into the `CLIENT_URI` variable in your backend `.env` file.
+* **Restart Backend Server:** Stop (`Ctrl+C`) and restart the backend server (`npm run dev | yarn dev`) so it uses the updated ngrok URLs.
 * **Keep the ngrok terminal open!**
 
 **3. Start Android Emulator & Frontend App:**
