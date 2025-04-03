@@ -8,6 +8,7 @@ import { initaliseOAuthClient } from "./oauth/oauthClient";
 import { createOAuthRouter } from "./routes/oauthRoutes";
 import { env } from "./utils/env";
 import logger from "./utils/logger";
+import { createApiRouter } from "./routes/apiRoutes";
 
 dotenv.config();
 
@@ -36,10 +37,10 @@ class Server {
 
   private async setupRoutes(client: NodeOAuthClient): Promise<void> {
     const oauthrouter = createOAuthRouter(client);
-    // const apiRouter = createrApiRouter(client);
+    const apiRouter = createApiRouter();
 
     this.app.use("/", oauthrouter);
-    // this.app.use('/api', apiRouter)
+    this.app.use("/api", apiRouter);
 
     logger.info("Routers mounted");
     this.app.use(errorHandler);
