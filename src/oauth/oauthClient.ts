@@ -1,13 +1,13 @@
+import { JoseKey } from "@atproto/jwk-jose";
 import {
   NodeOAuthClient,
   type NodeOAuthClientOptions,
 } from "@atproto/oauth-client-node";
-import { JoseKey } from "@atproto/jwk-jose";
 import dotenv from "dotenv";
-import logger from "../utils/logger";
-import { mongoStateStore } from "../stores/MongoStateStore";
 import { mongoSessionStore } from "../stores/MongoSessionStore";
+import { mongoStateStore } from "../stores/MongoStateStore";
 import { env } from "../utils/env";
+import logger from "../utils/logger";
 
 dotenv.config();
 
