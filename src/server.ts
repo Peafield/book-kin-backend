@@ -44,7 +44,6 @@ class Server {
 
     logger.info("Routers mounted");
     this.app.use(errorHandler);
-    logger.info("");
   }
 
   public async start(): Promise<void> {
