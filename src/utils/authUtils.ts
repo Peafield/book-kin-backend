@@ -1,11 +1,10 @@
 import type { ProfileViewDetailed } from "@atproto/api/dist/client/types/app/bsky/actor/defs";
-import type { OAuthSession, Session } from "@atproto/oauth-client-node";
-import type { AppUserProfile, AuthRedirectData } from "types";
-import logger from "./logger";
+import type { OAuthSession } from "@atproto/oauth-client-node";
 import jwt from "jsonwebtoken";
+import type { AppUserProfile, AuthRedirectData } from "types";
 import { env } from "./env";
+import logger from "./logger";
 
-const JWT_SECRET = env.JWT_SECRET;
 const APP_BASE_DEEPLINK = env.APP_BASE_DEEPLINK;
 
 export function prepareAuthRedirectData(
@@ -18,6 +17,8 @@ export function prepareAuthRedirectData(
       "Auth Redirect Data Preperation Error: Missing session or profile data"
     );
   }
+
+  const JWT_SECRET = env.JWT_SECRET;
 
   const profileData: AppUserProfile = {
     did: session.did,
