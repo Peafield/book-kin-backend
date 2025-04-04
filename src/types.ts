@@ -19,17 +19,17 @@ export interface AppJwtPayload extends JwtPayload {
   did: string;
 }
 
-export const AddBookSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  authors: z.array(z.string()).optional(),
-  isbn10: z.string().optional(),
-  isbn13: z.string().optional(),
-  description: z.string().optional(),
-  coverImageUrl: z.string().optional(),
-  publisher: z.string().optional(),
-  publishedDate: z.string().optional(),
-  categories: z.array(z.string()).optional(),
-  colorTag: z.string().optional(),
-});
+export const AddBookApiSchema = z
+  .object({
+    isbn10: z.string().trim().optional(),
+    isbn13: z.string().trim().optional(),
+    title: z.string().trim().optional(),
+    authors: z.array(z.string().trim().min(1)).optional().default([]),
+    description: z.string().trim().optional(),
+    coverImageUrl: z.string().url().optional().or(z.literal("")),
+  })
+  .refine((data) => data.isbn10 || data.isbn13 || data.title, {
+    message: "Either ISBN (10 or 13) or Title must be provided",
+  });
 
-export type AddBookInput = z.infer<typeof AddBookSchema>;
+export type AddBookApiInput = z.infer<typeof AddBookApiSchema>;

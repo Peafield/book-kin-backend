@@ -1,17 +1,23 @@
-import type { NextFunction, Request, Response } from "express";
 import { Router } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { authenticateToken } from "../middleware/authMiddleware";
-import Book from "../models/Book";
-import { type AddBookInput, AddBookSchema } from "../types";
+import { AddBookApiSchema, type AddBookApiInput } from "../types";
 import logger from "../utils/logger";
+import {
+  findOrCreateCanonicalBook,
+  addBookToUserLibrary,
+  BookAlreadyExistsError,
+} from "../services/libraryService";
+import type mongoose from "mongoose";
 
 export function createApiRouter(): Router {
   const router = Router();
+
   router.post(
     "/books",
     authenticateToken,
     async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-      const validationResult = AddBookSchema.safeParse(req.body);
+      const validationResult = AddBookApiSchema.safeParse(req.body);
       if (!validationResult.success) {
         logger.warn("Add book validation failed", {
           errors: validationResult.error.flatten(),
@@ -23,29 +29,39 @@ export function createApiRouter(): Router {
         });
         return;
       }
-      const bookData: AddBookInput = validationResult.data;
-      const userDid = req.userDid;
-      if (!userDid) {
-        logger.error("User DID missing from request after auth middleware");
-        res.status(401).json({ success: false, message: "Unauthorized" });
-      }
+      const inputData: AddBookApiInput = validationResult.data;
+      // biome-ignore lint/style/noNonNullAssertion: <explanation>
+      const userDid = req.userDid!;
+
       try {
-        const newBook = new Book({
-          ...bookData,
-          ownerDid: userDid,
-          status: "available",
-          borrowerDid: null,
-        });
-        await newBook.save();
-        logger.info(`Book added successfully for user ${userDid}`, {
-          bookId: newBook.id,
-        });
-        res.status(201).json({ success: true, book: newBook.toJSON() });
+        const canonicalBook = await findOrCreateCanonicalBook(inputData);
+
+        if (!canonicalBook) {
+          res.status(404).json({
+            success: false,
+            message: "Book metadata could not be found or created.",
+          });
+          return;
+        }
+
+        const userLibraryBook = await addBookToUserLibrary(
+          userDid,
+          canonicalBook._id as string | mongoose.Types.ObjectId
+        );
+
+        res.status(201).json({ success: true, book: userLibraryBook.toJSON() });
       } catch (error) {
-        logger.error(`Error adding book for user ${userDid}`, { error });
+        if (error instanceof BookAlreadyExistsError) {
+          res.status(409).json({ success: false, message: error.message });
+        }
+        logger.error(
+          `Error in POST /api/books route for user ${userDid}:`,
+          error
+        );
         next(error);
       }
     }
   );
+
   return router;
 }
