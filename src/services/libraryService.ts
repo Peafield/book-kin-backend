@@ -1,4 +1,4 @@
-import type mongoose from "mongoose";
+import mongoose from "mongoose";
 import CanonicalBook, { type ICanonicalBook } from "../models/CanonicalBook";
 import UserLibraryBook, {
   type IPopulatedUserLibraryBook,
@@ -148,4 +148,48 @@ export async function addBookToUserLibrary(
   }
 
   return populatedUserBook;
+}
+
+export class BookNotFoundError extends Error {
+  constructor(message = "Book not found in your library.") {
+    super(message);
+    this.name = "BookNotFoundError";
+  }
+}
+
+export async function deleteUserLibraryBook(
+  userDid: string,
+  userLibraryBookId: string
+): Promise<boolean> {
+  if (!mongoose.Types.ObjectId.isValid(userLibraryBookId)) {
+    logger.warn(
+      `deleteUserLibraryBook: Invalid book ID format received: ${userLibraryBookId}`
+    );
+    throw new BookNotFoundError(
+      `Invalid book ID format: ${userLibraryBookId}.`
+    );
+  }
+
+  logger.info(
+    `Attempting to delete UserLibraryBook ${userLibraryBookId} for user ${userDid}`
+  );
+
+  const result = await UserLibraryBook.findOneAndDelete({
+    _id: new mongoose.Types.ObjectId(userLibraryBookId),
+    ownerDid: userDid,
+  });
+
+  if (!result) {
+    logger.warn(
+      `UserLibraryBook ${userLibraryBookId} not found for user ${userDid} or user does not own it.`
+    );
+    throw new BookNotFoundError(
+      `Book with ID ${userLibraryBookId} not found in your library or you do not have permission to delete it.`
+    );
+  }
+
+  logger.info(
+    `Successfully deleted UserLibraryBook ${userLibraryBookId} for user ${userDid}`
+  );
+  return true;
 }

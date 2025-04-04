@@ -28,7 +28,7 @@ class Server {
       cors({
         origin: ["http://localhost:8081", "http://127.0.0.1:8081"],
         credentials: true,
-        methods: ["GET", "POST"],
+        methods: ["GET", "POST", "DELETE", "OPTIONS"],
         allowedHeaders: ["Content-Type", "Authorization"],
       })
     );

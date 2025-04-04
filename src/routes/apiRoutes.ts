@@ -8,7 +8,9 @@ import UserLibraryBook, {
 } from "../models/UserLibraryBook";
 import {
   BookAlreadyExistsError,
+  BookNotFoundError,
   addBookToUserLibrary,
+  deleteUserLibraryBook,
   findOrCreateCanonicalBook,
 } from "../services/libraryService";
 import { type AddBookApiInput, AddBookApiSchema } from "../types";
@@ -81,6 +83,51 @@ export function createApiRouter(): Router {
       } catch (error) {
         logger.error(`Error fetching library for user DID ${userDid}:`, error);
         next(error);
+      }
+    }
+  );
+
+  router.delete(
+    "/books/:userLibraryBookId",
+    authenticateToken,
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      const { userLibraryBookId } = req.params;
+      // biome-ignore lint/style/noNonNullAssertion: <explanation>
+      const userDid = req.userDid!;
+
+      logger.info(
+        `Received DELETE request for book ID: ${userLibraryBookId} from user ${userDid}`
+      );
+
+      if (!userLibraryBookId) {
+        logger.warn(
+          "DELETE /api/books/:userLibraryBookId - Missing book ID in request"
+        );
+        res
+          .status(400)
+          .json({ success: false, message: "Book ID parameter is required" });
+        return;
+      }
+
+      try {
+        await deleteUserLibraryBook(userDid, userLibraryBookId);
+        logger.info(
+          `Successfully processed DELETE for book ID: ${userLibraryBookId} by user ${userDid}`
+        );
+        res.status(204).send();
+      } catch (error) {
+        if (error instanceof BookNotFoundError) {
+          logger.warn(
+            `DELETE /api/books/:userLibraryBookId - Book not found or invalid ID: ${userLibraryBookId} for user ${userDid}`
+          );
+          res.status(404).json({ success: false, message: error.message });
+        } else {
+          logger.error(
+            `Error in DELETE /api/books/${userLibraryBookId} for user ${userDid}:`,
+            error
+          );
+          next(error);
+        }
       }
     }
   );
