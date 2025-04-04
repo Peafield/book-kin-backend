@@ -1,14 +1,18 @@
+import type { NextFunction, Request, Response } from "express";
 import { Router } from "express";
-import type { Request, Response, NextFunction } from "express";
-import { authenticateToken } from "../middleware/authMiddleware";
-import { AddBookApiSchema, type AddBookApiInput } from "../types";
-import logger from "../utils/logger";
-import {
-  findOrCreateCanonicalBook,
-  addBookToUserLibrary,
-  BookAlreadyExistsError,
-} from "../services/libraryService";
 import type mongoose from "mongoose";
+import { authenticateToken } from "../middleware/authMiddleware";
+import type { ICanonicalBook } from "../models/CanonicalBook";
+import UserLibraryBook, {
+  type IPopulatedUserLibraryBook,
+} from "../models/UserLibraryBook";
+import {
+  BookAlreadyExistsError,
+  addBookToUserLibrary,
+  findOrCreateCanonicalBook,
+} from "../services/libraryService";
+import { type AddBookApiInput, AddBookApiSchema } from "../types";
+import logger from "../utils/logger";
 
 export function createApiRouter(): Router {
   const router = Router();
@@ -58,6 +62,24 @@ export function createApiRouter(): Router {
           `Error in POST /api/books route for user ${userDid}:`,
           error
         );
+        next(error);
+      }
+    }
+  );
+
+  router.get(
+    "/my-library",
+    authenticateToken,
+    async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+      const userDid = req.userDid;
+      try {
+        const userLibraryBooks: IPopulatedUserLibraryBook[] =
+          await UserLibraryBook.find({ ownerDid: userDid }).populate<{
+            canonicalBookId: ICanonicalBook;
+          }>("canonicalBookId");
+        res.status(200).json({ success: true, books: userLibraryBooks });
+      } catch (error) {
+        logger.error(`Error fetching library for user DID ${userDid}:`, error);
         next(error);
       }
     }

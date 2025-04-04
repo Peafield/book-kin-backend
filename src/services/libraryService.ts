@@ -4,6 +4,7 @@ import UserLibraryBook, {
   type IPopulatedUserLibraryBook,
 } from "../models/UserLibraryBook";
 import type { AddBookApiInput } from "../types";
+import { cleanIsbn } from "../utils/cleanIsbn";
 import logger from "../utils/logger";
 import fetchBookDataFromOpenLibrary from "./openLibraryService";
 
@@ -11,14 +12,14 @@ export async function findOrCreateCanonicalBook(
   inputData: AddBookApiInput
 ): Promise<ICanonicalBook | null> {
   let canonicalBook: ICanonicalBook | null = null;
-  const providedIsbn13 = inputData.isbn13?.replace(/-/g, "");
-  const providedIsbn10 = inputData.isbn10?.replace(/-/g, "");
+  const finalIsbn13 = cleanIsbn(inputData.isbn13);
+  const finalIsbn10 = cleanIsbn(inputData.isbn10);
 
   // Try finding by ISBN first
-  if (providedIsbn13 || providedIsbn10) {
+  if (finalIsbn13 || finalIsbn10) {
     const isbnQuery = [];
-    if (providedIsbn13) isbnQuery.push({ isbn13: providedIsbn13 });
-    if (providedIsbn10) isbnQuery.push({ isbn10: providedIsbn10 });
+    if (finalIsbn13) isbnQuery.push({ isbn13: finalIsbn13 });
+    if (finalIsbn10) isbnQuery.push({ isbn10: finalIsbn10 });
 
     if (isbnQuery.length > 0) {
       canonicalBook = await CanonicalBook.findOne({ $or: isbnQuery });
@@ -26,16 +27,18 @@ export async function findOrCreateCanonicalBook(
 
     if (!canonicalBook) {
       logger.info(
-        `Canonical book not found for ISBNs [${providedIsbn10}, ${providedIsbn13}]. Fetching from Open Library...`
+        `Canonical book not found for ISBNs [${finalIsbn10}, ${finalIsbn13}]. Fetching from Open Library...`
       );
       const externalData = await fetchBookDataFromOpenLibrary(
-        providedIsbn13 || providedIsbn10
+        finalIsbn13 || finalIsbn10
       );
 
       if (externalData) {
         logger.info(
           "Found data on Open Library, creating CanonicalBook entry."
         );
+        const externalCleanIsbn13 = cleanIsbn(externalData.isbn13);
+        const externalCleanIsbn10 = cleanIsbn(externalData.isbn10);
         const dataToSave: Partial<ICanonicalBook> = {
           title: externalData.title || inputData.title || "Unknown Title",
           authors: externalData.authors || inputData.authors || [],
@@ -44,13 +47,18 @@ export async function findOrCreateCanonicalBook(
           publisher: externalData.publisher,
           publishedDate: externalData.publishedDate,
           openLibraryId: externalData.openLibraryId,
-          isbn10: providedIsbn10 || externalData.isbn10 || undefined,
-          isbn13: providedIsbn13 || externalData.isbn13 || undefined,
+          isbn10: finalIsbn10 || externalCleanIsbn10,
+          isbn13: finalIsbn13 || externalCleanIsbn13,
         };
+
         for (const key of Object.keys(dataToSave)) {
           if (dataToSave[key as keyof ICanonicalBook] === undefined) {
             delete dataToSave[key as keyof ICanonicalBook];
           }
+        }
+        if (Object.keys(dataToSave).length === 0 && !dataToSave.title) {
+          logger.error("Attempted to save CanonicalBook with no valid data.");
+          return null;
         }
         canonicalBook = new CanonicalBook(dataToSave);
         await canonicalBook.save();
@@ -67,8 +75,8 @@ export async function findOrCreateCanonicalBook(
         canonicalBook = new CanonicalBook({
           title: inputData.title,
           authors: inputData.authors,
-          isbn10: providedIsbn10,
-          isbn13: providedIsbn13,
+          isbn10: finalIsbn10,
+          isbn13: finalIsbn13,
           description: inputData.description,
           coverImageUrl: inputData.coverImageUrl,
         });
