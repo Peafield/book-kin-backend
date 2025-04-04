@@ -25,6 +25,18 @@ const loggerLevels = {
     input: "green",
     silly: "rainbow",
   },
+  emojis: {
+    error: "🔥",
+    warn: "⚠️",
+    help: "❓",
+    data: "💾",
+    info: "✅",
+    debug: "🐛",
+    prompt: "💬",
+    verbose: "🔬",
+    input: "⌨️",
+    silly: "🤪",
+  },
 };
 
 addColors(loggerLevels.colors);
@@ -32,11 +44,16 @@ addColors(loggerLevels.colors);
 const customFormat = format.combine(
   format.timestamp({ format: "DD-MM-YYYY HH:mm:ss" }),
   format.colorize(),
-  format.printf(({ timestamp, level, message, ...meta }) => {
+  format.printf((info) => {
+    const { timestamp, level, message, ...meta } = info;
+    const originalLevel = info[Symbol.for("level")];
+    const emoji =
+      loggerLevels.emojis[originalLevel as keyof typeof loggerLevels.emojis] ||
+      "";
     const metaString = Object.keys(meta).length
       ? JSON.stringify(meta, null, 2)
       : "";
-    return `${timestamp} - ${level}: ${message} ${metaString}`.trim();
+    return `${timestamp} ${emoji} - ${level}: ${message} ${metaString}`.trim();
   })
 );
 
