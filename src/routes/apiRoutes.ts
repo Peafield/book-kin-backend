@@ -36,7 +36,7 @@ export function createApiRouter(): Router {
         return;
       }
       const inputData: AddBookApiInput = validationResult.data;
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
+      // biome-ignore lint/style/noNonNullAssertion: Authenticate token will handle userDid
       const userDid = req.userDid!;
 
       try {

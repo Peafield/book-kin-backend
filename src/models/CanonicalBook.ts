@@ -6,9 +6,12 @@ export interface ICanonicalBook extends Document {
   isbn10?: string;
   isbn13?: string;
   description?: string;
+  subtitle?: string;
   coverImageUrl?: string;
   publisher?: string;
   publishedDate?: string;
+  numberOfPages?: number;
+  firstSentence?: string;
   openLibraryId?: string;
   googleBooksId?: string;
   createdAt: Date;
@@ -34,6 +37,9 @@ const CanonicalBookSchema: Schema = new Schema(
       index: true,
     },
     description: { type: String, trim: true },
+    subtitle: { type: String, trim: true },
+    numberOfPages: { type: Number, trim: true },
+    firstSentence: { type: String, trim: true },
     coverImageUrl: { type: String, trim: true },
     publisher: { type: String, trim: true },
     publishedDate: { type: String, trim: true },
