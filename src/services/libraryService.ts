@@ -1,11 +1,11 @@
-import CanonicalBook, { type ICanonicalBook } from "models/CanonicalBook";
+import CanonicalBook, { type ICanonicalBook } from "../models/CanonicalBook";
 import UserLibraryBook, {
   type IPopulatedUserLibraryBook,
-} from "models/UserLibraryBook";
+} from "../models/UserLibraryBook";
 import mongoose from "mongoose";
-import type { AddBookApiInput, ParsedOpenLibraryData } from "types";
-import { cleanIsbn } from "utils/cleanIsbn";
-import logger from "utils/logger";
+import type { AddBookApiInput, ParsedOpenLibraryData } from "../types";
+import { cleanIsbn } from "../utils/cleanIsbn";
+import logger from "../utils/logger";
 import fetchBookDataFromOpenLibrary from "./openLibraryService";
 
 export async function findOrCreateCanonicalBook(
